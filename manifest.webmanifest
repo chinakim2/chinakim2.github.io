@@ -1,0 +1,41 @@
+{
+  "id": "./",
+  "name": "轻计划 - 家庭陪学节奏",
+  "short_name": "轻计划",
+  "description": "帮助小学低年级家庭把作业、复习、兴趣班和休息排成孩子能执行的每日节奏。",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff8ea",
+  "theme_color": "#37b6c8",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "今日计划",
+      "short_name": "今日计划",
+      "description": "打开轻计划，继续今天的安排",
+      "url": "./index.html#today"
+    }
+  ]
+}

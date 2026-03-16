@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#37b6c8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="轻计划" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>轻计划 | 陪学节奏管理</title>
+    <link rel="manifest" href="./manifest.webmanifest?v=20260317-2" />
+    <link rel="icon" href="./icons/icon-192.png?v=20260317-2" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=20260317-2" />
+    <link rel="stylesheet" href="./styles.css?v=20260317-2" />
+  </head>
+  <body>
+    <div class="app-shell" id="appShell">
+      <header class="app-header">
+        <h1>轻计划</h1>
+      </header>
+
+      <main class="app-main">
+        <section class="screen active" data-screen-panel="today">
+          <section class="card hero-card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">今天</p>
+                <h2>今晚就按这 3 步来</h2>
+                <p class="section-copy">
+                  先录入任务，再生成今晚节奏，最后把设备交给孩子专心做。
+                </p>
+              </div>
+            </div>
+
+            <div class="hero-stats">
+              <div class="stat-card">
+                <span class="stat-label">今晚负荷</span>
+                <strong id="loadStatus">待生成</strong>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">完成进度</span>
+                <strong id="completionRate">0%</strong>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">建议延后</span>
+                <strong id="postponeCount">0 项</strong>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button type="button" class="primary-button" id="generatePlan">生成今日计划</button>
+              <button type="button" class="secondary-button" id="goInputShortcut">先去录入</button>
+              <button type="button" class="ghost-button" id="handoffShortcut">交给孩子</button>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">计划</p>
+                <h3>今晚的安排</h3>
+                <p class="section-copy">这页只保留家长每天最高频会看的内容。</p>
+              </div>
+              <div class="action-row compact-row">
+                <button type="button" class="secondary-button compact-button" id="clearDay">清空今天</button>
+              </div>
+            </div>
+
+            <div class="planner-summary" id="planSummary">
+              <div class="summary-card">
+                <span>必须完成</span>
+                <strong id="mustCount">0 项</strong>
+              </div>
+              <div class="summary-card">
+                <span>可延后</span>
+                <strong id="delayCount">0 项</strong>
+              </div>
+              <div class="summary-card">
+                <span>专注时长</span>
+                <strong id="focusUsed">0 分钟</strong>
+              </div>
+            </div>
+
+            <div class="alert-card" id="loadAlert">
+              <p class="alert-title">等待计划生成</p>
+              <p class="alert-copy">先去录入任务，再回来点“生成今日计划”。</p>
+            </div>
+
+            <div class="timeline" id="timeline"></div>
+          </section>
+
+          <section class="card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">复盘</p>
+                <h3>今晚的小总结</h3>
+                <p class="section-copy">不只看做了多少，也看节奏是不是合适。</p>
+              </div>
+            </div>
+
+            <div class="review-grid">
+              <div class="review-card">
+                <span>完成情况</span>
+                <strong id="reviewCompletion">0 / 0</strong>
+                <p id="reviewCompletionCopy">今晚还没有开始。</p>
+              </div>
+              <div class="review-card">
+                <span>最顺利的环节</span>
+                <strong id="reviewSmooth">待开始</strong>
+                <p id="reviewSmoothCopy">完成任务后会给出判断。</p>
+              </div>
+              <div class="review-card">
+                <span>明日建议</span>
+                <strong id="reviewAdvice">先安排今天</strong>
+                <p id="reviewAdviceCopy">系统会根据负荷给出建议。</p>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="screen" data-screen-panel="input">
+          <section class="card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">录入</p>
+                <h3>先把今天的任务放进来</h3>
+                <p class="section-copy">家长每天主要就是这一步：添加任务，然后回“今天”一键生成。</p>
+              </div>
+            </div>
+
+            <form id="taskForm" class="task-form">
+              <label>
+                任务名称
+                <input type="text" name="taskTitle" placeholder="例如：数学口算" maxlength="24" required />
+              </label>
+              <label>
+                类型
+                <select name="taskType">
+                  <option value="homework">学校作业</option>
+                  <option value="review">自主复习</option>
+                  <option value="habit">习惯养成</option>
+                  <option value="class">兴趣班</option>
+                </select>
+              </label>
+              <label>
+                预计占用时长
+                <select name="duration">
+                  <option value="10">10 分钟</option>
+                  <option value="15">15 分钟</option>
+                  <option value="20">20 分钟</option>
+                  <option value="25">25 分钟</option>
+                  <option value="30">30 分钟</option>
+                  <option value="45">45 分钟</option>
+                  <option value="60">60 分钟</option>
+                  <option value="75">75 分钟</option>
+                  <option value="90">90 分钟</option>
+                  <option value="120">120 分钟</option>
+                  <option value="150">150 分钟</option>
+                  <option value="180">180 分钟</option>
+                </select>
+              </label>
+              <label>
+                优先级
+                <select name="priority">
+                  <option value="must">必须完成</option>
+                  <option value="should">尽量完成</option>
+                  <option value="optional">可延后</option>
+                </select>
+              </label>
+              <label class="class-time-field hidden" id="classTimeField">
+                课程开始时间
+                <input type="time" name="classStart" value="19:00" />
+              </label>
+              <button type="submit" class="primary-button full-button">添加到今天</button>
+            </form>
+
+            <p class="field-help" id="taskDurationHint">
+              作业和复习填写任务本身时长；如果是兴趣班，建议填写从出门到回家或恢复学习前的总占用时长。
+            </p>
+          </section>
+
+          <section class="card task-list-card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">任务篮子</p>
+                <h3>今天已经录入的内容</h3>
+                <p class="section-copy">这里确认一下有没有漏掉，也可以长按任务卡调整顺序。</p>
+              </div>
+            </div>
+
+            <div class="task-chip-row" id="taskList"></div>
+          </section>
+
+          <section class="card profile-card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">档案</p>
+                <h3>孩子的小档案</h3>
+                <p class="section-copy">这部分不需要每天改，只有作息变化时再调整就好。</p>
+              </div>
+            </div>
+
+            <form id="profileForm" class="form-grid">
+              <label>
+                孩子昵称
+                <input type="text" name="childName" placeholder="例如：朵朵" maxlength="12" />
+              </label>
+              <label>
+                年级
+                <select name="grade">
+                  <option value="一年级">一年级</option>
+                  <option value="二年级">二年级</option>
+                  <option value="三年级">三年级</option>
+                </select>
+              </label>
+              <label>
+                放学到家
+                <input type="time" name="arrivalTime" value="17:20" />
+              </label>
+              <label>
+                晚上睡觉
+                <input type="time" name="bedTime" value="21:20" />
+              </label>
+              <label>
+                每晚可专注总时长
+                <input type="range" name="focusMinutes" min="40" max="180" step="10" value="100" />
+                <span class="range-value" id="focusMinutesValue">100 分钟</span>
+              </label>
+              <label>
+                保留自由玩耍
+                <input type="range" name="playMinutes" min="20" max="90" step="10" value="40" />
+                <span class="range-value" id="playMinutesValue">40 分钟</span>
+              </label>
+            </form>
+          </section>
+        </section>
+
+        <section class="screen" data-screen-panel="child">
+          <section class="card handoff-card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">孩子</p>
+                <h3>交给孩子时，只留下她该看的</h3>
+                <p class="section-copy" id="childModeCopy">
+                  进入孩子专注模式后，会隐藏家长内容；退出时需要家长密码。
+                </p>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button type="button" class="primary-button" id="handoffChildMode">进入孩子专注模式</button>
+              <button type="button" class="secondary-button" id="goTodayShortcut">回到今天</button>
+            </div>
+          </section>
+
+          <section class="card child-stage">
+            <div class="child-stage-top">
+              <p class="section-tag">孩子端</p>
+              <button type="button" class="ghost-button compact-button child-exit-trigger hidden" id="childExitTrigger">家长入口</button>
+            </div>
+
+            <h3 id="childGreeting">今晚我们先从轻松的一步开始</h3>
+            <div class="child-current" id="childCurrent">
+              <p class="child-current-label">当前任务</p>
+              <h4>还没有生成计划</h4>
+              <p>家长端生成计划后，这里会显示“现在做什么”。</p>
+            </div>
+
+            <div class="child-actions">
+              <button type="button" class="secondary-button" id="startTask">开始当前任务</button>
+              <button type="button" class="primary-button" id="completeTask">完成这一项</button>
+            </div>
+
+            <div class="child-progress">
+              <div class="progress-head">
+                <span>今天已经完成</span>
+                <strong id="childProgressText">0 / 0</strong>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="childProgressFill"></div>
+              </div>
+            </div>
+
+            <section class="next-up">
+              <p class="section-tag">接下来</p>
+              <div id="nextTaskList" class="next-task-list"></div>
+            </section>
+          </section>
+        </section>
+
+        <section class="screen" data-screen-panel="more">
+          <section class="card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">家长锁</p>
+                <h3>家长管理密码</h3>
+                <p class="section-copy">设置 4 位密码后，孩子专注模式退出时就需要家长来解锁。</p>
+              </div>
+            </div>
+
+            <p class="status-copy" id="parentPinStatus">还没有设置家长密码。</p>
+
+            <form id="pinSetupForm" class="pin-setup-form">
+              <label>
+                4 位密码
+                <input
+                  type="password"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="4"
+                  autocomplete="new-password"
+                  name="parentPin"
+                  placeholder="例如：1234"
+                />
+              </label>
+              <label>
+                再输入一次
+                <input
+                  type="password"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  maxlength="4"
+                  autocomplete="new-password"
+                  name="parentPinConfirm"
+                  placeholder="再次确认"
+                />
+              </label>
+              <button type="submit" class="primary-button full-button">保存家长密码</button>
+            </form>
+
+            <p class="field-help" id="pinSetupMessage">
+              建议你和孩子妈妈共用同一个 4 位密码。修改时，直接输入新的密码覆盖保存就可以。
+            </p>
+          </section>
+
+          <section class="card">
+            <div class="section-top">
+              <div>
+                <p class="section-tag">同步</p>
+                <h3>安装与家庭同步</h3>
+                <p class="section-copy">这些不是每天都要操作的，所以统一放到“更多”。</p>
+              </div>
+            </div>
+
+            <div class="stack-group">
+              <div class="utility-block">
+                <p class="utility-label">安装到手机和平板</p>
+                <p class="utility-copy" id="installHint">
+                  这版已经可以安装到手机和平板。装好后，直接从桌面点开就能用。
+                </p>
+                <div class="action-row">
+                  <button type="button" class="primary-button" id="installApp">安装到这台设备</button>
+                  <button type="button" class="secondary-button" id="exportState">导出家庭数据</button>
+                </div>
+                <div class="action-row compact-row">
+                  <button type="button" class="ghost-button" id="importState">导入家庭数据</button>
+                </div>
+                <p class="status-copy" id="installStatus">
+                  现在已经支持家庭云同步；“导出 / 导入家庭数据”保留为备用方式。
+                </p>
+                <input type="file" id="importFile" accept="application/json" hidden />
+              </div>
+
+              <div class="utility-block">
+                <p class="utility-label">家庭同步</p>
+                <p class="utility-copy" id="syncHint">
+                  云端已经接通。第一次开启后，会为你们家生成一份共享空间。
+                </p>
+                <div class="action-row">
+                  <button type="button" class="primary-button" id="enableCloudSync">开启家庭同步</button>
+                  <button type="button" class="secondary-button" id="syncNow">立即同步</button>
+                </div>
+                <div class="action-row compact-row">
+                  <button type="button" class="ghost-button" id="copyFamilyLink">复制家庭加入链接</button>
+                </div>
+                <p class="status-copy" id="syncStatus">云端同步已经准备好了。</p>
+              </div>
+            </div>
+          </section>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" id="bottomNav">
+        <button type="button" class="nav-button active" data-screen-target="today">今天</button>
+        <button type="button" class="nav-button" data-screen-target="input">录入</button>
+        <button type="button" class="nav-button" data-screen-target="child">孩子</button>
+        <button type="button" class="nav-button" data-screen-target="more">更多</button>
+      </nav>
+
+      <div class="pin-modal hidden" id="pinModal">
+        <div class="pin-dialog">
+          <p class="section-tag">家长入口</p>
+          <h3 id="pinModalTitle">请输入家长密码</h3>
+          <p class="section-copy" id="pinModalCopy">退出孩子专注模式，需要家长来确认。</p>
+          <input
+            id="pinModalInput"
+            class="pin-input"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="4"
+            autocomplete="one-time-code"
+            placeholder="输入 4 位密码"
+          />
+          <p class="pin-error hidden" id="pinModalError">密码不对，再试一次。</p>
+          <div class="action-row compact-row">
+            <button type="button" class="secondary-button" id="pinCancel">取消</button>
+            <button type="button" class="primary-button" id="pinSubmit">确认</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast hidden" id="toast" aria-live="polite"></div>
+
+    <template id="taskChipTemplate">
+      <article class="task-chip">
+        <div>
+          <p class="task-chip-type"></p>
+          <strong class="task-chip-title"></strong>
+          <span class="task-chip-meta"></span>
+        </div>
+        <button type="button" class="icon-button" aria-label="删除任务">×</button>
+      </article>
+    </template>
+
+    <template id="timelineItemTemplate">
+      <article class="timeline-item">
+        <div class="timeline-time"></div>
+        <div class="timeline-body">
+          <div class="timeline-topline">
+            <span class="timeline-badge"></span>
+            <strong class="timeline-title"></strong>
+          </div>
+          <p class="timeline-copy"></p>
+        </div>
+      </article>
+    </template>
+
+    <script src="./config.js?v=20260317-2"></script>
+    <script src="./app.js?v=20260317-2"></script>
+  </body>
+</html>
